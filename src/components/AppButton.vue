@@ -3,14 +3,15 @@
     class="btn" :class="color"
     type="submit"
     :disabled="disabled"
-  >Добавить</button>
+  >{{ text }}</button>
 </template>
 
 <script>
 export default {
   props: {
     disabled: Boolean,
-    color: String
+    color: String,
+    text: String
   }
 }
 </script>

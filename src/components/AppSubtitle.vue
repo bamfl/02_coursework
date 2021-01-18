@@ -1,7 +1,7 @@
 <template>
-  <h1>
+  <h2>
     {{text}}
-  </h1>
+  </h2>
 </template>
 
 <script>

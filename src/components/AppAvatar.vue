@@ -1,7 +1,7 @@
 <template>
-  <h1>
-    {{text}}
-  </h1>
+  <div class="avatar">
+    <img :src="text">
+  </div>
 </template>
 
 <script>

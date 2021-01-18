@@ -5,50 +5,48 @@
         :selected="selectType"
         @select-change="selectChange"
       ></app-select>
-      {{selectType}}
 
       <app-textarea
         v-model="text"
       ></app-textarea>
-      {{text}}
 
       <app-button
         :disabled="isDisabled"
         color="primary"
+        text="Добавить"
       ></app-button>
-      {{card}}
     </form>
 
     <div class="card card-w70">
-      <app-title>Резюме Nickname</app-title>
+      <component
+        :is="`app-${item.selectType}`"
+        v-for="item in card" :key="item.id"
+        :id="item.id"
+        :text="item.text"
+        :type="item.selectType"
+      >
+      </component>
 
-      <h1></h1>
-      <div class="avatar">
-        <img src="https://cdn.dribbble.com/users/5592443/screenshots/14279501/drbl_pop_r_m_rick_4x.png">
-      </div>
-      <h2>Опыт работы</h2>
-      <p>
-        главный герой американского мультсериала «Рик и Морти», гениальный учёный, изобретатель, атеист (хотя в некоторых сериях он даже молится Богу, однако, каждый раз после чудесного спасения ссылается на удачу и вновь отвергает его существование), алкоголик, социопат, дедушка Морти. На момент начала третьего сезона ему 70 лет[1]. Рик боится пиратов, а его главной слабостью является некий - "Санчезиум". Исходя из того, что существует неограниченное количество вселенных, существует неограниченное количество Риков, герой сериала предположительно принадлежит к измерению С-137. В серии комикcов Рик относится к измерению C-132, а в игре «Pocket Mortys» — к измерению C-123[2]. Прототипом Рика Санчеза является Эмметт Браун, герой кинотрилогии «Назад в будущее»[3].
-      </p>
-      <h3>Добавьте первый блок, чтобы увидеть результат</h3>
+      <app-empty v-if="card.length === 0"></app-empty>
     </div>
   </div>
+
   <div class="container">
     <p>
-      <button class="btn primary">Загрузить комментарии</button>
+      <app-button
+        color="primary"
+        text="Загрузить комментарии"
+        @click="loadComments"
+      ></app-button>
     </p>
+
     <div class="card">
-      <h2>Комментарии</h2>
-      <ul class="list">
-        <li class="list-item">
-          <div>
-            <p><strong>test@microsoft.com</strong></p>
-            <small>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Eligendi, reiciendis.</small>
-          </div>
-        </li>
-      </ul>
+      <app-subtitle text="Комментарии"></app-subtitle>
+
+      <app-list :comments="comments"></app-list>
     </div>
-    <div class="loader"></div>
+
+    <app-loader v-if="comments.length === 0"></app-loader>
   </div>
 </template>
 
@@ -57,14 +55,22 @@ import AppSelect from '@/components/AppSelect'
 import AppTextarea from '@/components/AppTextarea'
 import AppButton from '@/components/AppButton'
 import AppTitle from '@/components/AppTitle'
+import AppAvatar from '@/components/AppAvatar'
+import AppSubtitle from '@/components/AppSubtitle'
+import AppText from '@/components/AppText'
+import AppEmpty from '@/components/AppEmpty'
+import AppList from '@/components/AppList'
+import AppLoader from '@/components/AppLoader'
+import axios from 'axios'
 
 export default {
   data () {
     return {
       text: '',
-      selectType: 'text',
-      card: [],
-      id: 1
+      selectType: 'title',
+      card: [{ id: 1, text: 'Иван', selectType: 'title' }, { id: 2, text: 'Иванов', selectType: 'subtitle' }, { id: 3, text: 'https://pv51.ru/storage/users/default.png', selectType: 'avatar' }, { id: 4, text: 'Моряк', selectType: 'text' }],
+      id: 1,
+      comments: []
     }
   },
   methods: {
@@ -79,6 +85,19 @@ export default {
       })
       this.id++
       this.text = ''
+    },
+    async loadComments () {
+      const { data } = await axios.get('https://jsonplaceholder.typicode.com/comments?_limit=42')
+
+      const result = Object.keys(data).map(key => {
+        return {
+          id: key,
+          ...data[key]
+        }
+      })
+
+      this.comments = result
+      console.log(result)
     }
   },
   computed: {
@@ -90,7 +109,13 @@ export default {
     AppSelect,
     AppTextarea,
     AppButton,
-    AppTitle
+    AppTitle,
+    AppAvatar,
+    AppSubtitle,
+    AppText,
+    AppEmpty,
+    AppList,
+    AppLoader
   }
 }
 </script>
