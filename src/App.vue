@@ -141,8 +141,7 @@ export default {
       this.alert = {
         title: 'Успешно!',
         type: 'primary',
-        text: 'Данные добавлены',
-        do: ''
+        text: 'Данные добавлены'
       }
     },
     async loadComments () {
@@ -169,8 +168,7 @@ export default {
       this.alert = {
         title: 'Успешно!',
         type: 'danger',
-        text: 'Данные удалены',
-        do: ''
+        text: 'Данные удалены'
       }
     }
   },
