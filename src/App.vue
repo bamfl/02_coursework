@@ -1,6 +1,6 @@
 <template>
   <div class="container column">
-    <form class="card card-w30" @submit.prevent="addToCard">
+    <form class="card card-w30" @submit.prevent="addInfo">
       <app-select
         :selected="selectType"
         @select-change="selectChange"
@@ -18,16 +18,30 @@
     </form>
 
     <div class="card card-w70">
-      <component
-        :is="`app-${item.selectType}`"
-        v-for="item in card" :key="item.id"
-        :id="item.id"
-        :text="item.text"
-        :type="item.selectType"
-      >
-      </component>
+      <app-loader
+        v-if="loadingCard"
+        color="black"
+      ></app-loader>
 
-      <app-empty v-if="card.length === 0"></app-empty>
+      <app-alert
+        v-if="isAlert"
+        :alert="alert"
+        @delete-alert="alert = null"
+      ></app-alert>
+
+      <div v-if="!loadingCard">
+        <component
+          :is="`app-${item.selectType}`"
+          v-for="item in card" :key="item.id"
+          :id="item.id"
+          :text="item.text"
+          :type="item.selectType"
+          @delete-item="deleteItem"
+        >
+        </component>
+      </div>
+
+      <app-empty v-if="isEmpty"></app-empty>
     </div>
   </div>
 
@@ -46,7 +60,10 @@
       <app-list :comments="comments"></app-list>
     </div>
 
-    <app-loader v-if="comments.length === 0"></app-loader>
+    <app-loader
+      v-if="loadingComments"
+      color="white"
+    ></app-loader>
   </div>
 </template>
 
@@ -61,6 +78,7 @@ import AppText from '@/components/AppText'
 import AppEmpty from '@/components/AppEmpty'
 import AppList from '@/components/AppList'
 import AppLoader from '@/components/AppLoader'
+import AppAlert from '@/components/AppAlert'
 import axios from 'axios'
 
 export default {
@@ -68,25 +86,68 @@ export default {
     return {
       text: '',
       selectType: 'title',
-      card: [{ id: 1, text: 'Иван', selectType: 'title' }, { id: 2, text: 'Иванов', selectType: 'subtitle' }, { id: 3, text: 'https://pv51.ru/storage/users/default.png', selectType: 'avatar' }, { id: 4, text: 'Моряк', selectType: 'text' }],
-      id: 1,
-      comments: []
+      card: [],
+      id: '',
+      comments: [],
+      loadingCard: true,
+      loadingComments: false,
+      alert: null
     }
+  },
+  mounted () {
+    this.loadInfo()
   },
   methods: {
     selectChange (type) {
       this.selectType = `${type}`
     },
-    addToCard () {
-      this.card.push({
-        id: this.id,
+    async loadInfo () {
+      try {
+        const { data } = await axios.get('https://vue-coursework-default-rtdb.firebaseio.com/info.json')
+
+        const result = Object.keys(data).map(key => {
+          return {
+            id: key,
+            ...data[key]
+          }
+        })
+
+        this.card = result
+        this.loadingCard = false
+      } catch (error) {
+        this.alert = {
+          title: 'Ошибка!',
+          type: 'danger',
+          text: 'Список в базе данных пуст'
+        }
+        this.loadingCard = false
+      }
+    },
+    async addInfo () {
+      const response = await axios.post('https://vue-coursework-default-rtdb.firebaseio.com/info.json', {
         text: this.text,
         selectType: this.selectType
       })
-      this.id++
+
+      const firebaseDataId = await response.data.name
+
+      this.card.push({
+        id: firebaseDataId,
+        text: this.text,
+        selectType: this.selectType
+      })
       this.text = ''
+      this.selectType = 'title'
+      this.alert = {
+        title: 'Успешно!',
+        type: 'primary',
+        text: 'Данные добавлены',
+        do: ''
+      }
     },
     async loadComments () {
+      this.loadingComments = true
+
       const { data } = await axios.get('https://jsonplaceholder.typicode.com/comments?_limit=42')
 
       const result = Object.keys(data).map(key => {
@@ -97,12 +158,31 @@ export default {
       })
 
       this.comments = result
-      console.log(result)
+
+      this.loadingComments = false
+    },
+    async deleteItem (id) {
+      await axios.delete(`https://vue-coursework-default-rtdb.firebaseio.com/info/${id}.json`)
+
+      this.card = this.card.filter(item => item.id !== id)
+
+      this.alert = {
+        title: 'Успешно!',
+        type: 'danger',
+        text: 'Данные удалены',
+        do: ''
+      }
     }
   },
   computed: {
     isDisabled () {
       return !(this.text.length > 3)
+    },
+    isEmpty () {
+      return !!((!this.loadingCard && this.card.length === 0))
+    },
+    isAlert () {
+      return !!((this.alert !== null && !this.loadingCard))
     }
   },
   components: {
@@ -115,12 +195,13 @@ export default {
     AppText,
     AppEmpty,
     AppList,
-    AppLoader
+    AppLoader,
+    AppAlert
   }
 }
 </script>
 
-<style>
+<style lang="scss">
   .avatar {
     display: flex;
     justify-content: center;
@@ -130,5 +211,17 @@ export default {
     width: 150px;
     height: auto;
     border-radius: 50%;
+  }
+
+  .wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  span {
+    color: red;
+    font-weight: 700;
+    cursor: pointer;
+    font-size: 20px;
   }
 </style>

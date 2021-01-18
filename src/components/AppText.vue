@@ -1,13 +1,16 @@
 <template>
-  <p>
-    {{text}}
-  </p>
+  <div class="wrapper">
+    <p>
+      {{text}}
+    </p>
+    <span @click="$emit('delete-item', id)">X</span>
+  </div>
 </template>
 
 <script>
 export default {
   props: {
-    id: Number,
+    id: String,
     text: String,
     type: String
   }

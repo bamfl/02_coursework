@@ -1,13 +1,17 @@
 <template>
-  <h2>
-    {{text}}
-  </h2>
+  <div class="wrapper">
+    <h2>
+      {{text}}
+    </h2>
+    <span v-if="text !== 'Комментарии'" @click="$emit('delete-item', id)">X</span>
+  </div>
 </template>
 
 <script>
 export default {
+  emit: ['delete-item'],
   props: {
-    id: Number,
+    id: String,
     text: String,
     type: String
   }
@@ -15,5 +19,4 @@ export default {
 </script>
 
 <style>
-
 </style>

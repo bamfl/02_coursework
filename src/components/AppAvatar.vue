@@ -1,13 +1,14 @@
 <template>
-  <div class="avatar">
+  <div class="wrapper avatar">
     <img :src="text">
+    <span @click="$emit('delete-item', id)">X</span>
   </div>
 </template>
 
 <script>
 export default {
   props: {
-    id: Number,
+    id: String,
     text: String,
     type: String
   }
